@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: demo-app-sre-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+  - name: demo-app.pod-health
+    rules:
+    - alert: DemoAppPodNotReady
+      expr: kube_pod_status_ready{namespace="demo-app",condition="false"} == 1
+      for: 5m
+      labels: {severity: warning}
+      annotations: {summary: "Demo application Pod is not ready"}
+    - alert: DemoAppPodRestarting
+      expr: increase(kube_pod_container_status_restarts_total{namespace="demo-app"}[10m]) > 3
+      for: 5m
+      labels: {severity: critical}
+      annotations: {summary: "Demo application Pod is repeatedly restarting"}
